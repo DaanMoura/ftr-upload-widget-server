@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: widget-server-deployment
+  namespace: widget
+
+spec:
+  replicas: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 20%
+      maxUnavailable: 10%
+  selector:
+    matchLabels:
+      app: widget-server
+  template:
+    metadata:
+      labels:
+        app: widget-server
+    spec:
+      containers:
+        - name: widget-server
+          image: daanmoura/widget-server:v2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CLOUDFLARE_ACCESS_KEY_ID
+              value: "#"
+            - name: CLOUDFLARE_SECRET_ACCESS_KEY
+              value: "#"
+            - name: CLOUDFLARE_BUCKET
+              value: "#"
+            - name: CLOUDFLARE_ACCOUNT_ID
+              value: "#"
+            - name: CLOUDFLARE_PUBLIC_URL
+              value: "http://localhost"
+          ports:
+            - containerPort: 3333
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3333
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+            periodSeconds: 15
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3333
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+            periodSeconds: 15
+            initialDelaySeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3333
+            failureThreshold: 2
+            successThreshold: 1
+            timeoutSeconds: 1
+            periodSeconds: 15
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 300m
+              memory: 384Mi
